@@ -53,6 +53,29 @@ class TestTEDSBasic(unittest.TestCase):
         self.assertTrue(result.success)
         self.assertEqual(result.score, 1.0)
 
+    def test_teds_missing_child_changes_score(self):
+        reference = "<table><tr><td>A</td><td>B</td></tr></table>"
+        predicted = "<table><tr><td>A</td></tr></table>"
+        result = self.teds_metric.calculate(
+            predicted=predicted,
+            groundtruth=reference,
+            table_edit_result=self.valid_table_edit_result,
+        )
+        self.assertTrue(result.success)
+        self.assertLess(result.score, 1.0)
+        self.assertEqual(result.details['edit_distance'], 2)
+
+    def test_teds_same_shape_changed_cell_text(self):
+        reference = "<table><tr><td>Alpha</td></tr></table>"
+        predicted = "<table><tr><td>Beta</td></tr></table>"
+        result = self.teds_metric.calculate(
+            predicted=predicted,
+            groundtruth=reference,
+            table_edit_result=self.valid_table_edit_result,
+        )
+        self.assertTrue(result.success)
+        self.assertLess(result.score, 1.0)
+
     def test_teds_different_tables(self):
         """Test completely different tables"""
         pred = "<table><tr><td>1</td></tr></table>"
@@ -219,7 +242,7 @@ class TestTEDSBasic(unittest.TestCase):
             groundtruth=gt,
             table_edit_result=self.valid_table_edit_result
         )
-        self.assertAlmostEqual(result.score, 0.96, places=6)
+        self.assertAlmostEqual(result.score, 0.8, places=6)
 
 
 class TestTEDSAdvanced(unittest.TestCase):
@@ -325,7 +348,7 @@ class TestTEDSAdvanced(unittest.TestCase):
             table_edit_result=self.valid_table_edit_result
         )
 
-        self.assertAlmostEqual(result.score, 0.931818, places=6)
+        self.assertAlmostEqual(result.score, 0.6, places=6)
 
 class TestStructureTEDS(unittest.TestCase):
     """Structure-only TEDS tests"""

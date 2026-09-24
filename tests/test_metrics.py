@@ -147,8 +147,8 @@ $$\\int_{0}^{\\infty} e^{-x} dx = 1$$
         self.assertTrue(teds_result.success)
         self.assertIsInstance(teds_result.score, float)
         # Verify deterministic score for fixed content
-        self.assertAlmostEqual(teds_result.score, 0.97857, places=5,
-                               msg=f"table_TEDS分数应该是0.97857，实际: {teds_result.score}")
+        self.assertAlmostEqual(teds_result.score, 0.7266666666666667, places=5,
+                               msg=f"table_TEDS分数应该是0.7266666666666667，实际: {teds_result.score}")
 
         # Verify details
         self.assertEqual(teds_result.details['content_type'], 'table')
@@ -877,11 +877,11 @@ def hello_world():
         self.assertAlmostEqual(results["table_edit"].score, 0.5935733724094621, places=5,
                                msg=f"table_edit score should be 0.5935733724094621, actual: {results['table_edit'].score}")
 
-        # Verify TEDS metric (identical table structure, perfect score)
+        # Verify TEDS over the complete nested tree rather than one serialized label.
         self.assertIn("table_TEDS", results)
         self.assertTrue(results["table_TEDS"].success)
-        self.assertAlmostEqual(results["table_TEDS"].score, 0.9984520490180891, places=5,
-                               msg=f"table_TEDS分数应该是0.0.9984520490180891，实际: {results['table_TEDS'].score}")
+        self.assertAlmostEqual(results["table_TEDS"].score, 0.7707764786661371, places=5,
+                               msg=f"table_TEDS分数应该是0.7707764786661371，实际: {results['table_TEDS'].score}")
 
     def test_table_sample_edit_distance(self):
         """Test edit distance for tables with consistent rendering but inconsistent style"""
