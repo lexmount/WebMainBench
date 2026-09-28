@@ -10,6 +10,10 @@ def _sha256(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
+def _json_sha256(value: Any) -> str:
+    return _sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
+
+
 def apply_corrections(
     rows: Iterable[Dict[str, Any]], manifest_path: Path
 ) -> List[Dict[str, Any]]:
@@ -34,20 +38,30 @@ def apply_corrections(
                 raise ValueError(f"Dataset contains duplicate corrected track ID: {track_id}")
             if row.get("url") != correction["url"]:
                 raise ValueError(f"URL changed for corrected track ID: {track_id}")
-            groundtruth = row.get("groundtruth_content")
-            if not isinstance(groundtruth, str):
-                raise ValueError(f"Missing groundtruth_content for corrected track ID: {track_id}")
-            if _sha256(groundtruth) != correction["original_groundtruth_sha256"]:
-                raise ValueError(f"Ground truth changed for corrected track ID: {track_id}")
             if "html_sha256" in correction:
                 html = row.get("html")
                 if not isinstance(html, str) or _sha256(html) != correction["html_sha256"]:
                     raise ValueError(f"HTML changed for corrected track ID: {track_id}")
-            replacement_path = manifest_path.parent / correction["replacement_file"]
-            replacement = replacement_path.read_text(encoding="utf-8")
-            if _sha256(replacement) != correction["replacement_sha256"]:
-                raise ValueError(f"Replacement hash mismatch for corrected track ID: {track_id}")
-            row["groundtruth_content"] = replacement
+            changed = False
+            if "replacement_file" in correction:
+                groundtruth = row.get("groundtruth_content")
+                if not isinstance(groundtruth, str):
+                    raise ValueError(f"Missing groundtruth_content for corrected track ID: {track_id}")
+                if _sha256(groundtruth) != correction["original_groundtruth_sha256"]:
+                    raise ValueError(f"Ground truth changed for corrected track ID: {track_id}")
+                replacement_path = manifest_path.parent / correction["replacement_file"]
+                replacement = replacement_path.read_text(encoding="utf-8")
+                if _sha256(replacement) != correction["replacement_sha256"]:
+                    raise ValueError(f"Replacement hash mismatch for corrected track ID: {track_id}")
+                row["groundtruth_content"] = replacement
+                changed = True
+            if "replacement_meta" in correction:
+                if _json_sha256(row.get("meta")) != correction["original_meta_sha256"]:
+                    raise ValueError(f"Metadata changed for corrected track ID: {track_id}")
+                row["meta"] = correction["replacement_meta"]
+                changed = True
+            if not changed:
+                raise ValueError(f"Correction has no replacement for track ID: {track_id}")
             applied.add(track_id)
         result.append(row)
 

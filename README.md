@@ -88,6 +88,13 @@ Computed on the 545-sample subset with manually calibrated `groundtruth_content`
 
 All scores are in **[0, 1]**; higher is better.
 
+The specialized metrics use a shared reference-defined population. Code scope
+comes from the audited dataset code annotation and requires scorable code in the
+reference; formula and table scope require a scorable reference representation.
+Prediction-only content never adds a row to one extractor's denominator. If a
+reference-scoped feature is missing from a prediction, including an extraction
+failure, that row scores zero instead of disappearing from the aggregate.
+
 ## Leaderboard
 
 ### ROUGE-N F1 on Full Dataset (7,809 samples)
@@ -238,8 +245,9 @@ export LLM_MODEL="gpt-5-chat-latest"
 python examples/run_545_leaderboard.py data/WebMainBench_545_corrected.jsonl
 ```
 
-The correction command is hash-bound. It stops if the downloaded HTML or
-ground truth differs from the reviewed source instead of applying a stale edit.
+The correction command is hash-bound. It corrects reviewed reference Markdown
+and content annotations, and stops if the downloaded HTML, ground truth, or
+metadata differs from the reviewed source instead of applying a stale edit.
 
 Complete examples are available at `examples/run_545_leaderboard.py` and `examples/multi_extractor_compare.py`.
 

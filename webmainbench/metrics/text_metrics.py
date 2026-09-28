@@ -229,13 +229,14 @@ class CodeEditMetric(EditDistanceMetric):
         # Extract code content from content_list
         pred_code = self._extract_code_content(predicted, predicted_content_list)
         gt_code = self._extract_code_content(groundtruth, groundtruth_content_list)
+        feature_scope = kwargs.get("groundtruth_feature_scope")
 
         # Category metrics use the reference-defined population.  Counting a
         # prediction-only code fragment would make each extractor receive a
         # different denominator, while an extractor that emitted nothing
         # would avoid the penalty entirely.  Full-text similarity already
         # accounts for content outside the reference's code scope.
-        if not gt_code.strip():
+        if isinstance(feature_scope, dict) and not feature_scope.get("code"):
             result = MetricResult.create_error_result(
                 self.name, "Groundtruth contains no code"
             )
@@ -245,6 +246,12 @@ class CodeEditMetric(EditDistanceMetric):
                 "content_type": "code",
                 "availability": "reference_defined",
             })
+            return result
+        if not gt_code.strip():
+            result = MetricResult.create_error_result(
+                self.name, "Groundtruth declares code but contains no scorable code"
+            )
+            result.details["availability"] = "reference_defined"
             return result
 
         # Calculate edit distance

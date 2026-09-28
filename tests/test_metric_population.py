@@ -1,6 +1,8 @@
 import unittest
+from types import SimpleNamespace
 
 from webmainbench.metrics.calculator import MetricCalculator
+from webmainbench.evaluator.evaluator import Evaluator
 
 
 class TestReferenceDefinedMetricPopulation(unittest.TestCase):
@@ -11,6 +13,7 @@ class TestReferenceDefinedMetricPopulation(unittest.TestCase):
         result = self.calculator.calculate_all(
             predicted_content="`invented()`\n\n$x$\n\n| a |\n|---|\n| b |",
             groundtruth_content="plain reference text",
+            groundtruth_feature_scope={"code": [], "equation": [], "table": []},
         )
         for metric in ("code_edit", "formula_edit", "table_edit", "table_TEDS"):
             with self.subTest(metric=metric):
@@ -24,11 +27,35 @@ class TestReferenceDefinedMetricPopulation(unittest.TestCase):
                 "use `expected()` and $x$\n\n"
                 "| a |\n|---|\n| b |"
             ),
+            groundtruth_feature_scope={
+                "code": ["inline"], "equation": ["inline"], "table": ["data"]
+            },
         )
         for metric in ("code_edit", "formula_edit", "table_edit", "table_TEDS"):
             with self.subTest(metric=metric):
                 self.assertTrue(result[metric].success)
                 self.assertEqual(result[metric].score, 0.0)
+
+    def test_extraction_failure_remains_in_reference_populations(self):
+        evaluator = Evaluator(
+            metric_config={"use_llm": False},
+            llm_config={"use_llm": False},
+        )
+        sample = SimpleNamespace(
+            groundtruth_content="use `expected()`",
+            groundtruth_content_list=None,
+            meta={"code": ["inline"], "equation": [], "table": []},
+        )
+        result = evaluator._score_failed_extraction(sample)
+        self.assertTrue(result["text_edit"]["success"])
+        self.assertEqual(result["text_edit"]["score"], 0.0)
+        self.assertTrue(result["code_edit"]["success"])
+        self.assertEqual(result["code_edit"]["score"], 0.0)
+        self.assertFalse(result["formula_edit"]["success"])
+        self.assertEqual(
+            result["code_edit"]["details"]["prediction_source"],
+            "extraction_failure",
+        )
 
 
 if __name__ == "__main__":

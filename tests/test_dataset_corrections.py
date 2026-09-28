@@ -11,6 +11,10 @@ def sha256(value):
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
+def json_sha256(value):
+    return sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
+
+
 def fixture(tmp_path):
     replacement = "# Visible article\n\nOne canonical copy.\n"
     (tmp_path / "replacement.md").write_text(replacement, encoding="utf-8")
@@ -71,13 +75,41 @@ class DatasetCorrectionTests(unittest.TestCase):
         corrected = json.loads(output_path.read_text(encoding="utf-8"))
         self.assertEqual(corrected["groundtruth_content"], replacement)
 
+    def test_metadata_correction_is_hash_bound(self):
+        meta = {"code": ["interline"], "language": "en"}
+        manifest = {
+            "schema_version": 1,
+            "corrections": [{
+                "track_id": "wrong-code-label",
+                "url": "https://example.test/plain",
+                "original_meta_sha256": json_sha256(meta),
+                "replacement_meta": {"code": [], "language": "en"},
+            }],
+        }
+        path = self.path / "meta.json"
+        path.write_text(json.dumps(manifest), encoding="utf-8")
+        row = {
+            "track_id": "wrong-code-label",
+            "url": "https://example.test/plain",
+            "groundtruth_content": "Plain text",
+            "meta": meta,
+        }
+        corrected = apply_corrections([row], path)[0]
+        self.assertEqual(corrected["meta"]["code"], [])
+        row["meta"]["code"] = ["inline"]
+        with self.assertRaises(ValueError):
+            apply_corrections([row], path)
+
     def test_repository_manifest_and_replacement_are_bound(self):
         root = Path(__file__).parent.parent
         manifest_path = root / "data/corrections/WebMainBench_545.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         self.assertEqual(manifest["schema_version"], 1)
-        self.assertEqual(len(manifest["corrections"]), 1)
-        correction = manifest["corrections"][0]
+        self.assertGreaterEqual(len(manifest["corrections"]), 1)
+        correction = next(
+            item for item in manifest["corrections"]
+            if item["track_id"] == "f080fbec-9ec6-43c6-9bc6-0846c70cbe8d"
+        )
         replacement = (manifest_path.parent / correction["replacement_file"]).read_text(
             encoding="utf-8"
         )

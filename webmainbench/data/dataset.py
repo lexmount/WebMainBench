@@ -28,6 +28,7 @@ class DataSample:
     content_type: Optional[str] = None  # article, forum, blog, etc.
     difficulty: Optional[str] = None  # easy, medium, hard
     tags: Optional[List[str]] = None
+    meta: Optional[Dict[str, Any]] = None
     llm_webkit_md: Optional[str] = None
     llm_webkit_html: Optional[str] = None  # Pre-processed HTML field
     main_html: Optional[str] = None  # Main HTML content field
@@ -53,6 +54,7 @@ class DataSample:
             "content_type": self.content_type,
             "difficulty": self.difficulty,
             "tags": self.tags,
+            "meta": self.meta,
             "extracted_results": self.extracted_results,
         }
     
@@ -158,4 +160,4 @@ class BenchmarkDataset:
         return iter(self.samples)
     
     def __getitem__(self, index: int) -> DataSample:
-        return self.samples[index] 
+        return self.samples[index]

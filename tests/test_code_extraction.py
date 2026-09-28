@@ -57,6 +57,11 @@ Use <code>result</code> below.
         result = BaseMetric._extract_from_markdown(text)
         self.assertEqual(result['code'], 'one()\ntwo()\nresult')
 
+    def test_dataset_inline_code_marker_is_recognized(self):
+        text = "definition <cccode-inline>`term`</cccode-inline>"
+        result = BaseMetric._extract_from_markdown(text)
+        self.assertEqual(result['code'], 'term')
+
     def test_fenced_html_is_not_double_counted(self):
         """HTML-looking source inside a fence remains one code block."""
         text = """```html
@@ -68,7 +73,11 @@ Use <code>result</code> below.
     def test_code_population_is_defined_by_the_reference(self):
         """Prediction-only code cannot change one method's denominator."""
         metric = CodeEditMetric("code_edit", {"use_llm": False})
-        outside_scope = metric.calculate("`invented()`", "plain reference")
+        outside_scope = metric.calculate(
+            "`invented()`",
+            "plain reference",
+            groundtruth_feature_scope={"code": []},
+        )
         self.assertFalse(outside_scope.success)
         self.assertEqual(outside_scope.details["availability"], "reference_defined")
 
@@ -137,6 +146,19 @@ print("hi")
         """)
         self.assertEqual(result['code'], expected_code.strip())
         self.assertEqual(result['formula'], '')
+
+    def test_layout_indented_prose_is_not_code(self):
+        """Wrapped article prose must not expand the code population."""
+        text = """
+Abstract
+
+         destruction of cells during luteal regression. In certain
+         cell types, sensitivity depends on intermediate filaments.
+
+Conclusion
+"""
+        result = BaseMetric._extract_from_markdown(text)
+        self.assertEqual(result['code'], '')
 
 
 if __name__ == '__main__':
