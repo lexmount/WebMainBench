@@ -57,6 +57,43 @@ class TestReferenceDefinedMetricPopulation(unittest.TestCase):
             "extraction_failure",
         )
 
+    def test_batch_calculation_preserves_each_reference_scope(self):
+        results = self.calculator.calculate_batch([
+            {
+                "predicted_content": "`invented()`",
+                "groundtruth_content": "plain text",
+                "meta": {"code": [], "equation": [], "table": []},
+            },
+            {
+                "predicted_content": "plain text",
+                "groundtruth_content": "use `expected()`",
+                "meta": {"code": ["inline"], "equation": [], "table": []},
+            },
+        ])
+        self.assertFalse(results[0]["code_edit"].success)
+        self.assertEqual(
+            results[0]["code_edit"].details["availability"],
+            "reference_not_applicable",
+        )
+        self.assertTrue(results[1]["code_edit"].success)
+
+    def test_metric_error_inside_reference_population_scores_zero(self):
+        evaluator = Evaluator.__new__(Evaluator)
+        sample_results = [
+            {"metrics": {"code_edit": {"success": True, "score": 0.8, "details": {}}}},
+            {"metrics": {"code_edit": {
+                "success": False,
+                "score": 0.0,
+                "details": {"availability": "reference_error"},
+            }}},
+            {"metrics": {"code_edit": {
+                "success": False,
+                "score": 0.0,
+                "details": {"availability": "reference_not_applicable"},
+            }}},
+        ]
+        self.assertEqual(evaluator._aggregate_metrics(sample_results)["code_edit"], 0.4)
+
 
 if __name__ == "__main__":
     unittest.main()

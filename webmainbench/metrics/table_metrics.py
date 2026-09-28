@@ -24,6 +24,14 @@ class TableEditMetric(EditDistanceMetric):
         # 1. Extract raw table content
         pred_raw = self._extract_table_content(predicted, predicted_content_list)
         gt_raw = self._extract_table_content(groundtruth, groundtruth_content_list)
+        feature_scope = kwargs.get("groundtruth_feature_scope")
+
+        if isinstance(feature_scope, dict) and not feature_scope.get("table"):
+            result = MetricResult.create_error_result(
+                self.name, "Groundtruth contains no table"
+            )
+            result.details["availability"] = "reference_not_applicable"
+            return result
 
         if not gt_raw.strip():
             result = MetricResult.create_error_result(
@@ -34,7 +42,7 @@ class TableEditMetric(EditDistanceMetric):
                 "groundtruth_table_length": 0,
                 "content_type": "table",
                 "normalization": "teds_based",
-                "availability": "reference_defined",
+                "availability": "reference_error",
             })
             return result
 

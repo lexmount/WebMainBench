@@ -14,14 +14,31 @@ def _json_sha256(value: Any) -> str:
     return _sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
 
 
+def _validate_population(rows: List[Dict[str, Any]], binding: Dict[str, Any], label: str) -> None:
+    ids = [row.get("track_id") or row.get("id") for row in rows]
+    if len(rows) != binding.get("row_count"):
+        raise ValueError(f"{label} dataset row count mismatch")
+    if any(not isinstance(track_id, str) or not track_id for track_id in ids):
+        raise ValueError(f"{label} dataset contains a row without an ID")
+    if len(set(ids)) != len(ids):
+        raise ValueError(f"{label} dataset contains duplicate track IDs")
+    if _json_sha256(ids) != binding.get("ordered_track_ids_sha256"):
+        raise ValueError(f"{label} dataset order or IDs changed")
+    if _json_sha256(rows) != binding.get("rows_sha256"):
+        raise ValueError(f"{label} dataset content changed")
+
+
 def apply_corrections(
     rows: Iterable[Dict[str, Any]], manifest_path: Path
 ) -> List[Dict[str, Any]]:
     """Return corrected rows and reject stale or ambiguous correction targets."""
     manifest_path = Path(manifest_path)
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if manifest.get("schema_version") != 1:
+    if manifest.get("schema_version") != 2:
         raise ValueError("Unsupported dataset correction schema")
+
+    rows = list(rows)
+    _validate_population(rows, manifest["input_population"], "Input")
 
     corrections = {item["track_id"]: item for item in manifest["corrections"]}
     if len(corrections) != len(manifest["corrections"]):
@@ -68,6 +85,7 @@ def apply_corrections(
     missing = corrections.keys() - applied
     if missing:
         raise ValueError(f"Dataset is missing corrected track IDs: {sorted(missing)}")
+    _validate_population(result, manifest["output_population"], "Output")
     return result
 
 

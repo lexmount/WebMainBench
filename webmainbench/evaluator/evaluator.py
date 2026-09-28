@@ -527,9 +527,13 @@ class Evaluator:
         for sample in sample_results:
             metrics = sample.get("metrics", {})
             for metric_name in metric_totals.keys():
-                if metric_name in metrics and metrics[metric_name].get("success", False):
-                    metric_totals[metric_name] += metrics[metric_name]["score"]
-                    metric_counts[metric_name] += 1
+                if metric_name not in metrics:
+                    continue
+                metric = metrics[metric_name]
+                if metric.get("details", {}).get("availability") == "reference_not_applicable":
+                    continue
+                metric_totals[metric_name] += metric["score"] if metric.get("success", False) else 0.0
+                metric_counts[metric_name] += 1
 
         # Calculate average per metric (global overall = average of 5 core metrics)
         overall_metrics = {}

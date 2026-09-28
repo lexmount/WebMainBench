@@ -1,5 +1,15 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
+  "input_population": {
+    "row_count": 545,
+    "ordered_track_ids_sha256": "81d372afe7d3161ee93e5bd9e514bf5ff1c5ceabb611d1e70b1aa9176fc1aaba",
+    "rows_sha256": "d6dfb50eacf8697af50f4980e50c3447a3428807e02b38d203bf3a7994385895"
+  },
+  "output_population": {
+    "row_count": 545,
+    "ordered_track_ids_sha256": "81d372afe7d3161ee93e5bd9e514bf5ff1c5ceabb611d1e70b1aa9176fc1aaba",
+    "rows_sha256": "d546259bf77f4f7851e45d247b0fcb234683aab23927c31e583b835708bb2b15"
+  },
   "corrections": [
     {
       "track_id": "f080fbec-9ec6-43c6-9bc6-0846c70cbe8d",

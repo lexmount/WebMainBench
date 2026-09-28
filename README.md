@@ -245,9 +245,10 @@ export LLM_MODEL="gpt-5-chat-latest"
 python examples/run_545_leaderboard.py data/WebMainBench_545_corrected.jsonl
 ```
 
-The correction command is hash-bound. It corrects reviewed reference Markdown
-and content annotations, and stops if the downloaded HTML, ground truth, or
-metadata differs from the reviewed source instead of applying a stale edit.
+The correction command binds the complete input and output populations: row
+count, unique ordered IDs, and canonical row content. It corrects reviewed
+reference Markdown and content annotations, and stops on any changed, missing,
+duplicated, or reordered row instead of applying a stale or partial edit.
 
 Complete examples are available at `examples/run_545_leaderboard.py` and `examples/multi_extractor_compare.py`.
 

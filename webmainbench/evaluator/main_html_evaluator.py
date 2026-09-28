@@ -95,7 +95,7 @@ class MainHTMLEvaluator(Evaluator):
                     'sample_id': sample.id,
                     'extraction_success': False,
                     'extraction_error': str(e),
-                    'metrics': self._score_failed_main_html_extraction(sample),
+                    'metrics': {},
                 }
                 sample_results.append(error_result)
                 extraction_errors.append({
@@ -145,7 +145,7 @@ class MainHTMLEvaluator(Evaluator):
         
         if not extraction_result.success:
             sample_result['extraction_error'] = extraction_result.error_message
-            sample_result['metrics'] = self._score_failed_main_html_extraction(sample)
+            sample_result['metrics'] = {}
             return sample_result
         
         main_html = extract_main_html(sample.html)
@@ -184,25 +184,6 @@ class MainHTMLEvaluator(Evaluator):
         }
         
         return sample_result
-
-    def _score_failed_main_html_extraction(self, sample: DataSample) -> Dict[str, Any]:
-        """Keep failed calls in both reference-defined main-HTML populations."""
-        main_html = extract_main_html(sample.html)
-        metrics = self.metric_calculator.calculate_all(
-            predicted_content="",
-            convert_gt_main_content=self.html2text(main_html, sample.url),
-            groundtruth_content=sample.groundtruth_content,
-        )
-        result = {}
-        for metric_name, metric in metrics.items():
-            result[metric_name] = {
-                'score': metric.score,
-                'success': metric.success,
-                'details': {**metric.details, 'prediction_source': 'extraction_failure'},
-            }
-            if not metric.success:
-                result[metric_name]['error'] = metric.error_message
-        return result
     
     def _aggregate_metrics(self, sample_results: List[Dict[str, Any]]) -> Dict[str, float]:
         """Aggregate metrics across all samples, computing global averages (each metric aggregated independently)."""
@@ -330,4 +311,4 @@ class MainHTMLEvaluator(Evaluator):
                 print(f"Error evaluating {extractor_name}: {e}")
                 continue
         
-        return results
+        return results 

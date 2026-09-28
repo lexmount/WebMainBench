@@ -244,14 +244,14 @@ class CodeEditMetric(EditDistanceMetric):
                 "predicted_code_length": len(pred_code),
                 "groundtruth_code_length": 0,
                 "content_type": "code",
-                "availability": "reference_defined",
+                "availability": "reference_not_applicable",
             })
             return result
         if not gt_code.strip():
             result = MetricResult.create_error_result(
                 self.name, "Groundtruth declares code but contains no scorable code"
             )
-            result.details["availability"] = "reference_defined"
+            result.details["availability"] = "reference_error"
             return result
 
         # Calculate edit distance

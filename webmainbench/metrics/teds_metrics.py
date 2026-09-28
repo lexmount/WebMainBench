@@ -83,10 +83,13 @@ class TEDSMetric(BaseMetric):
                     self.name, "Missing table_edit result in kwargs"
                 )
             if not table_edit_result.success:
-                return MetricResult.create_error_result(
+                result = MetricResult.create_error_result(
                     self.name,
                     f"Skipped due to table_edit failure: {table_edit_result.details.get('error', 'unknown reason')}"
                 )
+                if "availability" in table_edit_result.details:
+                    result.details["availability"] = table_edit_result.details["availability"]
+                return result
 
             pred_html = self._normalize_to_html(predicted)
             gt_html = self._normalize_to_html(groundtruth)

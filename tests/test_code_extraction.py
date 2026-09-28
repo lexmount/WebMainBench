@@ -79,7 +79,7 @@ Use <code>result</code> below.
             groundtruth_feature_scope={"code": []},
         )
         self.assertFalse(outside_scope.success)
-        self.assertEqual(outside_scope.details["availability"], "reference_defined")
+        self.assertEqual(outside_scope.details["availability"], "reference_not_applicable")
 
         missing_prediction = metric.calculate("plain prediction", "use `expected()`")
         self.assertTrue(missing_prediction.success)

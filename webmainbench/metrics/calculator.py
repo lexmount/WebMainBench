@@ -194,6 +194,9 @@ class MetricCalculator:
                 groundtruth_content=sample.get('groundtruth_content', ''),
                 predicted_content_list=sample.get('predicted_content_list'),
                 groundtruth_content_list=sample.get('groundtruth_content_list'),
+                groundtruth_feature_scope=sample.get(
+                    'groundtruth_feature_scope', sample.get('meta')
+                ),
             )
             batch_results.append(sample_results)
         
