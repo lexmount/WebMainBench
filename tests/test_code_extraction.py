@@ -10,6 +10,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from webmainbench.metrics.base import BaseMetric, MetricResult
+from webmainbench.metrics.text_metrics import CodeEditMetric
 
 
 class TestCodeExtractionMetric(BaseMetric):
@@ -64,6 +65,17 @@ Use <code>result</code> below.
         result = BaseMetric._extract_from_markdown(text)
         self.assertEqual(result['code'], '<pre><code>literal</code></pre>')
 
+    def test_code_population_is_defined_by_the_reference(self):
+        """Prediction-only code cannot change one method's denominator."""
+        metric = CodeEditMetric("code_edit", {"use_llm": False})
+        outside_scope = metric.calculate("`invented()`", "plain reference")
+        self.assertFalse(outside_scope.success)
+        self.assertEqual(outside_scope.details["availability"], "reference_defined")
+
+        missing_prediction = metric.calculate("plain prediction", "use `expected()`")
+        self.assertTrue(missing_prediction.success)
+        self.assertEqual(missing_prediction.score, 0.0)
+
     def test_code_block(self):
         """Test code block"""
         text = """
@@ -81,6 +93,7 @@ Like this:
 
         # Verify extracted code
         expected_code = ("""
+"aaaabbbb"
 >>> mystr = "abcdefghijkl"
 >>> mystr[-4:]
 'ijkl'
@@ -118,6 +131,7 @@ Like this:
 
         # Verify extracted code
         expected_code = ("""
+"aaaabbbb"
 print("hello world")
 print("hi")
         """)

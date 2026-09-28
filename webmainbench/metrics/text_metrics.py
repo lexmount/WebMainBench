@@ -230,6 +230,23 @@ class CodeEditMetric(EditDistanceMetric):
         pred_code = self._extract_code_content(predicted, predicted_content_list)
         gt_code = self._extract_code_content(groundtruth, groundtruth_content_list)
 
+        # Category metrics use the reference-defined population.  Counting a
+        # prediction-only code fragment would make each extractor receive a
+        # different denominator, while an extractor that emitted nothing
+        # would avoid the penalty entirely.  Full-text similarity already
+        # accounts for content outside the reference's code scope.
+        if not gt_code.strip():
+            result = MetricResult.create_error_result(
+                self.name, "Groundtruth contains no code"
+            )
+            result.details.update({
+                "predicted_code_length": len(pred_code),
+                "groundtruth_code_length": 0,
+                "content_type": "code",
+                "availability": "reference_defined",
+            })
+            return result
+
         # Calculate edit distance
         result = super()._calculate_score(pred_code, gt_code, **kwargs)
         result.metric_name = self.name
@@ -414,4 +431,3 @@ class TextRougeNgramMetric(BaseMetric):
         # Convert scores to precision, recall, f1-score in ROUGE-L format
         result = {'prec': score.precision, 'rec': score.recall, 'f1': score.fmeasure}
         return result
-

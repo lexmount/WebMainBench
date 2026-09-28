@@ -25,6 +25,19 @@ class TableEditMetric(EditDistanceMetric):
         pred_raw = self._extract_table_content(predicted, predicted_content_list)
         gt_raw = self._extract_table_content(groundtruth, groundtruth_content_list)
 
+        if not gt_raw.strip():
+            result = MetricResult.create_error_result(
+                self.name, "Groundtruth contains no table"
+            )
+            result.details.update({
+                "predicted_table_length": len(pred_raw),
+                "groundtruth_table_length": 0,
+                "content_type": "table",
+                "normalization": "teds_based",
+                "availability": "reference_defined",
+            })
+            return result
+
         # 2. Reuse TEDSMetric's normalization method to convert to HTML format uniformly
         teds = TEDSMetric("temp_teds")  # Instantiate TEDSMetric to call its methods
         pred_html = teds._normalize_to_html(pred_raw)  # Call TEDS normalization
