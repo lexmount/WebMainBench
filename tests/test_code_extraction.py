@@ -38,13 +38,31 @@ class TestCodeExtraction(unittest.TestCase):
         self.assertEqual(result['code'], '')
         self.assertEqual(result['text'], '')
 
-    # def test_inline_code(self):
-    #     """Test inline code"""
-    #     text = "This is an example of `inline code`"
-    #     result = BaseMetric._extract_from_markdown(text)
-    #     print(result)
-    #     self.assertEqual(result['code'], 'inline code')
-    #     self.assertEqual(result['text'], text)
+    def test_inline_code(self):
+        """Inline code is part of the declared code population."""
+        text = "This is an example of `inline code`"
+        result = BaseMetric._extract_from_markdown(text)
+        self.assertEqual(result['code'], 'inline code')
+        self.assertEqual(result['text'], text)
+
+    def test_raw_html_code_preserves_links_and_table_structure(self):
+        """Semantic HTML fallbacks still expose their code text to scoring."""
+        text = """
+<table><tr><td>source</td><td><pre><a href="#L1">one()</a>
+two()</pre></td></tr></table>
+
+Use <code>result</code> below.
+"""
+        result = BaseMetric._extract_from_markdown(text)
+        self.assertEqual(result['code'], 'one()\ntwo()\nresult')
+
+    def test_fenced_html_is_not_double_counted(self):
+        """HTML-looking source inside a fence remains one code block."""
+        text = """```html
+<pre><code>literal</code></pre>
+```"""
+        result = BaseMetric._extract_from_markdown(text)
+        self.assertEqual(result['code'], '<pre><code>literal</code></pre>')
 
     def test_code_block(self):
         """Test code block"""
