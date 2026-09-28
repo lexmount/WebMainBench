@@ -439,6 +439,29 @@ class TestTEDSEdgeCases(unittest.TestCase):
         """Set up test fixtures"""
         self.teds = TEDSMetric("teds")
         self.s_teds = StructureTEDSMetric("s_teds")
+
+    def test_large_equal_shape_uses_certified_aligned_distance(self):
+        left = {"tag": "table", "text": "", "children": [
+            {"tag": "td", "text": str(index), "children": []}
+            for index in range(2000)
+        ]}
+        right = {"tag": "table", "text": "", "children": [
+            {"tag": "td", "text": str(index), "children": []}
+            for index in range(2000)
+        ]}
+        self.assertEqual(self.teds._tree_edit_distance(left, right), 0.0)
+
+    def test_large_uncertified_tree_is_unavailable_instead_of_approximated(self):
+        left = {"tag": "table", "text": "", "children": [
+            {"tag": "td", "text": str(index), "children": []}
+            for index in range(2000)
+        ]}
+        right = {"tag": "table", "text": "", "children": [
+            {"tag": "td", "text": str(index), "children": []}
+            for index in range(1999)
+        ]}
+        with self.assertRaisesRegex(ValueError, "safe workspace bound"):
+            self.teds._tree_edit_distance(left, right)
         # Create a valid table_edit result as dependency
         self.valid_table_edit_result = MetricResult(
             metric_name="table_edit",
