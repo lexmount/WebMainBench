@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "corrections": [
+    {
+      "track_id": "f080fbec-9ec6-43c6-9bc6-0846c70cbe8d",
+      "url": "https://bbs.nanshengbbs.top/detail/171",
+      "reason": "Remove the duplicated hidden Markdown editor buffer from the reference and retain one canonical Markdown copy.",
+      "original_groundtruth_sha256": "c23c7c7a57fc06b045929d5b8fd3271805d62df18cb7bd6221a21f6d2cc24765",
+      "replacement_file": "f080fbec-9ec6-43c6-9bc6-0846c70cbe8d.md",
+      "replacement_sha256": "2e04b21e7a80cb4333d9549620119ff833bed048d03af47461c534216d82e48c",
+      "html_sha256": "5c564eaea5ecb19b368fc843bec1550cc8a3a99099c76e20333a462fe32fb257"
+    }
+  ]
+}

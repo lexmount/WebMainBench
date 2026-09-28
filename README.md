@@ -230,11 +230,16 @@ for name, result in results.items():
 To reproduce the 545-sample fine-grained leaderboard:
 
 ```bash
+python scripts/apply_dataset_corrections.py \
+  data/WebMainBench_545.jsonl data/WebMainBench_545_corrected.jsonl
 export LLM_BASE_URL="https://your-openai-compatible-endpoint/v1"
 export LLM_API_KEY="..."
 export LLM_MODEL="gpt-5-chat-latest"
-python examples/run_545_leaderboard.py data/WebMainBench_545.jsonl
+python examples/run_545_leaderboard.py data/WebMainBench_545_corrected.jsonl
 ```
+
+The correction command is hash-bound. It stops if the downloaded HTML or
+ground truth differs from the reviewed source instead of applying a stale edit.
 
 Complete examples are available at `examples/run_545_leaderboard.py` and `examples/multi_extractor_compare.py`.
 

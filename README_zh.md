@@ -230,11 +230,15 @@ for name, result in results.items():
 复现 545 条子集细粒度榜单：
 
 ```bash
+python scripts/apply_dataset_corrections.py \
+  data/WebMainBench_545.jsonl data/WebMainBench_545_corrected.jsonl
 export LLM_BASE_URL="https://your-openai-compatible-endpoint/v1"
 export LLM_API_KEY="..."
 export LLM_MODEL="gpt-5-chat-latest"
-python examples/run_545_leaderboard.py data/WebMainBench_545.jsonl
+python examples/run_545_leaderboard.py data/WebMainBench_545_corrected.jsonl
 ```
+
+修订命令同时校验已复核网页和原参考答案的哈希；下载内容与复核版本不一致时会停止，避免静默套用过期修订。
 
 完整示例见 `examples/run_545_leaderboard.py` 和 `examples/multi_extractor_compare.py`。
 
