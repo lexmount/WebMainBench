@@ -439,6 +439,17 @@ class TestTEDSEdgeCases(unittest.TestCase):
         """Set up test fixtures"""
         self.teds = TEDSMetric("teds")
         self.s_teds = StructureTEDSMetric("s_teds")
+        # Create a valid table_edit result as dependency
+        self.valid_table_edit_result = MetricResult(
+            metric_name="table_edit",
+            score=1.0,
+            success=True,
+            details={
+                "distance": 0,
+                "predicted_length": 100,
+                "groundtruth_length": 100,
+            },
+        )
 
     def test_large_equal_shape_uses_certified_aligned_distance(self):
         left = {"tag": "table", "text": "", "children": [
@@ -462,17 +473,6 @@ class TestTEDSEdgeCases(unittest.TestCase):
         ]}
         with self.assertRaisesRegex(ValueError, "safe workspace bound"):
             self.teds._tree_edit_distance(left, right)
-        # Create a valid table_edit result as dependency
-        self.valid_table_edit_result = MetricResult(
-            metric_name="table_edit",
-            score=1.0,
-            success=True,
-            details={
-                "distance": 0,
-                "predicted_length": 100,
-                "groundtruth_length": 100
-            }
-        )
 
     def test_malformed_html(self):
         """Test TEDS with malformed HTML"""
@@ -484,8 +484,9 @@ class TestTEDSEdgeCases(unittest.TestCase):
             good_table,
             table_edit_result=self.valid_table_edit_result  # add dependency parameter
         )
-        # Should handle gracefully without crashing
-        self.assertTrue(result.success or not result.success)  # Either way is acceptable
+        self.assertTrue(result.success)
+        self.assertGreaterEqual(result.score, 0.0)
+        self.assertLessEqual(result.score, 1.0)
 
     def test_unicode_content(self):
         """Test TEDS with Unicode content"""
