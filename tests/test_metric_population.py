@@ -94,6 +94,35 @@ class TestReferenceDefinedMetricPopulation(unittest.TestCase):
         ]
         self.assertEqual(evaluator._aggregate_metrics(sample_results)["code_edit"], 0.4)
 
+    def test_public_batch_aggregate_uses_the_reference_population(self):
+        batch = self.calculator.calculate_batch([
+            {
+                "predicted_content": "use `expected()`",
+                "groundtruth_content": "use `expected()`",
+                "meta": {"code": ["inline"], "equation": [], "table": []},
+            },
+            {
+                "predicted_content": "plain",
+                "groundtruth_content": "use `expected()`",
+                "meta": {"code": ["inline"], "equation": [], "table": []},
+            },
+            {
+                "predicted_content": "use `invented()`",
+                "groundtruth_content": "plain",
+                "meta": {"code": [], "equation": [], "table": []},
+            },
+        ])
+        batch[1]["code_edit"].success = False
+        batch[1]["code_edit"].score = 0.0
+        batch[1]["code_edit"].details["availability"] = "reference_error"
+
+        result = self.calculator.aggregate_results(batch)["code_edit"]
+
+        self.assertEqual(result.score, 0.5)
+        self.assertEqual(result.details["num_applicable"], 2)
+        self.assertEqual(result.details["num_failed"], 1)
+        self.assertEqual(result.details["num_not_applicable"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()

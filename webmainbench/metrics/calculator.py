@@ -139,27 +139,33 @@ class MetricCalculator:
                 )
                 results["table_TEDS"] = teds_result
 
-        # 3. Calculate composite score (average of all successful metrics)
-        successful_scores = []
+        # 3. Calculate the composite over the reference-defined metrics.
+        applicable_scores = []
         failed_metrics = []
         
         for metric_name, result in results.items():
-            if result.success:
-                successful_scores.append(result.score)
-            else:
+            if result.details.get("availability") == "reference_not_applicable":
+                continue
+            applicable_scores.append(result.score if result.success else 0.0)
+            if not result.success:
                 failed_metrics.append(metric_name)
         
-        if successful_scores:
-            overall_score = sum(successful_scores) / len(successful_scores)
+        if applicable_scores:
+            overall_score = sum(applicable_scores) / len(applicable_scores)
             overall_result = MetricResult(
                 metric_name="overall",
                 score=overall_score,
                 details={
                     "source": "average_of_all_metrics", 
-                    "description": "Overall score as average of all successful metrics",
-                    "successful_metrics": len(successful_scores),
+                    "description": "Overall score over reference-applicable metrics; applicable failures score zero",
+                    "applicable_metrics": len(applicable_scores),
+                    "successful_metrics": len(applicable_scores) - len(failed_metrics),
                     "failed_metrics": len(failed_metrics),
-                    "individual_scores": {name: result.score for name, result in results.items() if result.success}
+                    "individual_scores": {
+                        name: result.score if result.success else 0.0
+                        for name, result in results.items()
+                        if result.details.get("availability") != "reference_not_applicable"
+                    }
                 }
             )
             results["overall"] = overall_result

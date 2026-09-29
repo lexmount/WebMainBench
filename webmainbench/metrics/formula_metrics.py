@@ -40,7 +40,11 @@ class FormulaEditMetric(EditDistanceMetric):
                 "predicted_formula_length": len(pred_formula),
                 "groundtruth_formula_length": 0,
                 "content_type": "formula",
-                "availability": "reference_error",
+                "availability": (
+                    "reference_error"
+                    if isinstance(feature_scope, dict) and feature_scope.get("equation")
+                    else "reference_not_applicable"
+                ),
             })
             return result
 

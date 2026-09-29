@@ -42,7 +42,11 @@ class TableEditMetric(EditDistanceMetric):
                 "groundtruth_table_length": 0,
                 "content_type": "table",
                 "normalization": "teds_based",
-                "availability": "reference_error",
+                "availability": (
+                    "reference_error"
+                    if isinstance(feature_scope, dict) and feature_scope.get("table")
+                    else "reference_not_applicable"
+                ),
             })
             return result
 
