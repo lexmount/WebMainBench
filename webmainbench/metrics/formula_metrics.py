@@ -23,6 +23,30 @@ class FormulaEditMetric(EditDistanceMetric):
         # Extract formula content from content_list
         pred_formula = self._extract_formula_content(predicted, predicted_content_list)
         gt_formula = self._extract_formula_content(groundtruth, groundtruth_content_list)
+        feature_scope = kwargs.get("groundtruth_feature_scope")
+
+        if isinstance(feature_scope, dict) and not feature_scope.get("equation"):
+            result = MetricResult.create_error_result(
+                self.name, "Groundtruth contains no formula"
+            )
+            result.details["availability"] = "reference_not_applicable"
+            return result
+
+        if not gt_formula.strip():
+            result = MetricResult.create_error_result(
+                self.name, "Groundtruth contains no formula"
+            )
+            result.details.update({
+                "predicted_formula_length": len(pred_formula),
+                "groundtruth_formula_length": 0,
+                "content_type": "formula",
+                "availability": (
+                    "reference_error"
+                    if isinstance(feature_scope, dict) and feature_scope.get("equation")
+                    else "reference_not_applicable"
+                ),
+            })
+            return result
 
         # Calculate edit distance
         result = super()._calculate_score(pred_formula, gt_formula, **kwargs)

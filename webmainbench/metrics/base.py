@@ -233,21 +233,29 @@ class BaseMetric(ABC):
         if not results:
             return MetricResult.create_error_result(self.name, "No results to aggregate")
         
-        # Filter successful results
-        successful_results = [r for r in results if r.success]
-        
-        if not successful_results:
-            return MetricResult.create_error_result(self.name, "All calculations failed")
-        
-        # Calculate aggregate score (mean by default)
-        scores = [r.score for r in successful_results]
+        applicable_results = [
+            result
+            for result in results
+            if result.details.get("availability") != "reference_not_applicable"
+        ]
+
+        if not applicable_results:
+            return MetricResult.create_error_result(
+                self.name, "Metric is not applicable to any reference"
+            )
+
+        # An applicable calculation failure contributes zero instead of
+        # shrinking the reference-defined population.
+        scores = [result.score if result.success else 0.0 for result in applicable_results]
         avg_score = sum(scores) / len(scores)
         
         # Aggregate details
         aggregate_details = {
             "num_samples": len(results),
-            "num_successful": len(successful_results),
-            "num_failed": len(results) - len(successful_results),
+            "num_applicable": len(applicable_results),
+            "num_successful": sum(result.success for result in applicable_results),
+            "num_failed": sum(not result.success for result in applicable_results),
+            "num_not_applicable": len(results) - len(applicable_results),
             "scores": scores,
             "min_score": min(scores),
             "max_score": max(scores),

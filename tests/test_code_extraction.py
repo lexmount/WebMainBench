@@ -10,6 +10,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from webmainbench.metrics.base import BaseMetric, MetricResult
+from webmainbench.metrics.text_metrics import CodeEditMetric
 
 
 class TestCodeExtractionMetric(BaseMetric):
@@ -38,13 +39,51 @@ class TestCodeExtraction(unittest.TestCase):
         self.assertEqual(result['code'], '')
         self.assertEqual(result['text'], '')
 
-    # def test_inline_code(self):
-    #     """Test inline code"""
-    #     text = "This is an example of `inline code`"
-    #     result = BaseMetric._extract_from_markdown(text)
-    #     print(result)
-    #     self.assertEqual(result['code'], 'inline code')
-    #     self.assertEqual(result['text'], text)
+    def test_inline_code(self):
+        """Inline code is part of the declared code population."""
+        text = "This is an example of `inline code`"
+        result = BaseMetric._extract_from_markdown(text)
+        self.assertEqual(result['code'], 'inline code')
+        self.assertEqual(result['text'], text)
+
+    def test_raw_html_code_preserves_links_and_table_structure(self):
+        """Semantic HTML fallbacks still expose their code text to scoring."""
+        text = """
+<table><tr><td>source</td><td><pre><a href="#L1">one()</a>
+two()</pre></td></tr></table>
+
+Use <code>result</code> below.
+"""
+        result = BaseMetric._extract_from_markdown(text)
+        self.assertEqual(result['code'], 'one()\ntwo()\nresult')
+
+    def test_dataset_inline_code_marker_is_recognized(self):
+        text = "definition <cccode-inline>`term`</cccode-inline>"
+        result = BaseMetric._extract_from_markdown(text)
+        self.assertEqual(result['code'], 'term')
+
+    def test_fenced_html_is_not_double_counted(self):
+        """HTML-looking source inside a fence remains one code block."""
+        text = """```html
+<pre><code>literal</code></pre>
+```"""
+        result = BaseMetric._extract_from_markdown(text)
+        self.assertEqual(result['code'], '<pre><code>literal</code></pre>')
+
+    def test_code_population_is_defined_by_the_reference(self):
+        """Prediction-only code cannot change one method's denominator."""
+        metric = CodeEditMetric("code_edit", {"use_llm": False})
+        outside_scope = metric.calculate(
+            "`invented()`",
+            "plain reference",
+            groundtruth_feature_scope={"code": []},
+        )
+        self.assertFalse(outside_scope.success)
+        self.assertEqual(outside_scope.details["availability"], "reference_not_applicable")
+
+        missing_prediction = metric.calculate("plain prediction", "use `expected()`")
+        self.assertTrue(missing_prediction.success)
+        self.assertEqual(missing_prediction.score, 0.0)
 
     def test_code_block(self):
         """Test code block"""
@@ -63,6 +102,7 @@ Like this:
 
         # Verify extracted code
         expected_code = ("""
+"aaaabbbb"
 >>> mystr = "abcdefghijkl"
 >>> mystr[-4:]
 'ijkl'
@@ -100,11 +140,25 @@ Like this:
 
         # Verify extracted code
         expected_code = ("""
+"aaaabbbb"
 print("hello world")
 print("hi")
         """)
         self.assertEqual(result['code'], expected_code.strip())
         self.assertEqual(result['formula'], '')
+
+    def test_layout_indented_prose_is_not_code(self):
+        """Wrapped article prose must not expand the code population."""
+        text = """
+Abstract
+
+         destruction of cells during luteal regression. In certain
+         cell types, sensitivity depends on intermediate filaments.
+
+Conclusion
+"""
+        result = BaseMetric._extract_from_markdown(text)
+        self.assertEqual(result['code'], '')
 
 
 if __name__ == '__main__':

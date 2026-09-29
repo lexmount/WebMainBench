@@ -246,7 +246,7 @@ class Evaluator:
                     'sample_id': sample.id,
                     'extraction_success': False,
                     'extraction_error': str(e),
-                    'metrics': {},
+                    'metrics': self._score_failed_extraction(sample),
                 }
                 sample_results.append(error_result)
                 extraction_errors.append({
@@ -385,6 +385,12 @@ class Evaluator:
                     
             except Exception as e:
                 print(f"⚠️  Sample {sample.id} evaluation failed: {e}")
+                batch_results.append({
+                    'sample_id': sample.id,
+                    'extraction_success': False,
+                    'extraction_error': str(e),
+                    'metrics': self._score_failed_extraction(sample),
+                })
                 batch_errors.append({
                     'sample_id': sample.id,
                     'error': str(e),
@@ -416,7 +422,7 @@ class Evaluator:
         
         if not extraction_result.success:
             sample_result['extraction_error'] = extraction_result.error_message
-            sample_result['metrics'] = {}
+            sample_result['metrics'] = self._score_failed_extraction(sample)
             return sample_result
         
         # Calculate metrics
@@ -425,6 +431,7 @@ class Evaluator:
             groundtruth_content=sample.groundtruth_content,
             predicted_content_list=extraction_result.content_list,
             groundtruth_content_list=sample.groundtruth_content_list,
+            groundtruth_feature_scope=sample.meta,
         )
         
         # Convert metrics to dict
@@ -450,6 +457,26 @@ class Evaluator:
         }
         
         return sample_result
+
+    def _score_failed_extraction(self, sample: DataSample) -> Dict[str, Any]:
+        """Score an empty prediction so failures remain in reference populations."""
+        metrics = self.metric_calculator.calculate_all(
+            predicted_content="",
+            groundtruth_content=sample.groundtruth_content,
+            predicted_content_list=None,
+            groundtruth_content_list=sample.groundtruth_content_list,
+            groundtruth_feature_scope=sample.meta,
+        )
+        result = {}
+        for metric_name, metric in metrics.items():
+            result[metric_name] = {
+                'score': metric.score,
+                'success': metric.success,
+                'details': {**metric.details, 'prediction_source': 'extraction_failure'},
+            }
+            if not metric.success:
+                result[metric_name]['error'] = metric.error_message
+        return result
     
     def _aggregate_metrics(self, sample_results: List[Dict[str, Any]]) -> Dict[str, float]:
         """Aggregate metrics across all samples."""
@@ -500,9 +527,13 @@ class Evaluator:
         for sample in sample_results:
             metrics = sample.get("metrics", {})
             for metric_name in metric_totals.keys():
-                if metric_name in metrics and metrics[metric_name].get("success", False):
-                    metric_totals[metric_name] += metrics[metric_name]["score"]
-                    metric_counts[metric_name] += 1
+                if metric_name not in metrics:
+                    continue
+                metric = metrics[metric_name]
+                if metric.get("details", {}).get("availability") == "reference_not_applicable":
+                    continue
+                metric_totals[metric_name] += metric["score"] if metric.get("success", False) else 0.0
+                metric_counts[metric_name] += 1
 
         # Calculate average per metric (global overall = average of 5 core metrics)
         overall_metrics = {}

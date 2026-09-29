@@ -83,10 +83,13 @@ class TEDSMetric(BaseMetric):
                     self.name, "Missing table_edit result in kwargs"
                 )
             if not table_edit_result.success:
-                return MetricResult.create_error_result(
+                result = MetricResult.create_error_result(
                     self.name,
                     f"Skipped due to table_edit failure: {table_edit_result.details.get('error', 'unknown reason')}"
                 )
+                if "availability" in table_edit_result.details:
+                    result.details["availability"] = table_edit_result.details["availability"]
+                return result
 
             pred_html = self._normalize_to_html(predicted)
             gt_html = self._normalize_to_html(groundtruth)
@@ -217,8 +220,38 @@ class TEDSMetric(BaseMetric):
     def _tree_edit_distance(self, tree1: Dict, tree2: Dict) -> float:
         """Compute tree edit distance using APTED."""
         # APTED needs actual child nodes. A serialized label is treated as a
-        # leaf by Config.children, so it cannot measure any nested difference.
-        return float(APTED(tree1, tree2, self.config_apted).compute_edit_distance())
+        # leaf by Config.children, so it cannot measure nested differences.
+        left_nodes = self._count_nodes(tree1)
+        right_nodes = self._count_nodes(tree2)
+
+        def aligned_cost(left, right):
+            left_children = self.config_apted.children(left)
+            right_children = self.config_apted.children(right)
+            if len(left_children) != len(right_children):
+                return float('inf')
+            return self.config_apted.rename(left, right) + sum(
+                aligned_cost(a, b) for a, b in zip(left_children, right_children)
+            )
+
+        aligned = aligned_cost(tree1, tree2) if left_nodes == right_nodes else float('inf')
+        # Equal-shape trees have a unique mapping without insert/delete costs.
+        # Any competing structural mapping costs at least one delete plus one
+        # insert, so an aligned cost <= 2 is already the exact optimum.
+        if aligned <= 2:
+            distance = float(aligned)
+        elif left_nodes * right_nodes > 4_000_000:
+            # Refuse an unbounded exact workspace.  Never substitute a node-
+            # count approximation: an unavailable metric is safer than a
+            # plausible but unproved score.
+            raise ValueError(
+                'Exact tree calculation exceeds safe workspace bound; '
+                'no approximate score emitted'
+            )
+        else:
+            distance = float(APTED(tree1, tree2, self.config_apted).compute_edit_distance())
+        if distance + 1e-9 < abs(left_nodes - right_nodes):
+            raise ValueError('Tree distance violates the node-count lower bound')
+        return distance
 
     def _count_nodes(self, tree: Dict) -> int:
         if tree is None:

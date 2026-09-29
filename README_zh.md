@@ -88,6 +88,8 @@ WebMainBench 支持两套互补的评测协议：
 
 所有分数范围为 **[0, 1]**，越高越好。
 
+各专项指标使用由参考答案统一定义的样本范围。代码范围来自审计后的数据集代码标注，并要求参考答案中存在可评分的代码；公式和表格范围要求参考答案中存在可评分的对应内容。某个方法额外生成的代码、公式或表格不会扩大它自己的分母；参考范围内未抽取出对应内容（包括抽取失败）时，该项计零分，不会从汇总中消失。
+
 ## 排行榜
 
 ### ROUGE-N F1 — 全量数据集（7,809 条）
@@ -230,11 +232,15 @@ for name, result in results.items():
 复现 545 条子集细粒度榜单：
 
 ```bash
+python scripts/apply_dataset_corrections.py \
+  data/WebMainBench_545.jsonl data/WebMainBench_545_corrected.jsonl
 export LLM_BASE_URL="https://your-openai-compatible-endpoint/v1"
 export LLM_API_KEY="..."
 export LLM_MODEL="gpt-5-chat-latest"
-python examples/run_545_leaderboard.py data/WebMainBench_545.jsonl
+python examples/run_545_leaderboard.py data/WebMainBench_545_corrected.jsonl
 ```
+
+修订命令绑定完整输入和输出的行数、唯一有序 ID 及规范化行内容；任一行被修改、遗漏、重复或重排时都会停止，避免静默套用过期或不完整的修订。
 
 完整示例见 `examples/run_545_leaderboard.py` 和 `examples/multi_extractor_compare.py`。
 

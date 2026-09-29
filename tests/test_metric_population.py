@@ -1,0 +1,128 @@
+import unittest
+from types import SimpleNamespace
+
+from webmainbench.metrics.calculator import MetricCalculator
+from webmainbench.evaluator.evaluator import Evaluator
+
+
+class TestReferenceDefinedMetricPopulation(unittest.TestCase):
+    def setUp(self):
+        self.calculator = MetricCalculator({"use_llm": False})
+
+    def test_prediction_only_special_content_does_not_expand_population(self):
+        result = self.calculator.calculate_all(
+            predicted_content="`invented()`\n\n$x$\n\n| a |\n|---|\n| b |",
+            groundtruth_content="plain reference text",
+            groundtruth_feature_scope={"code": [], "equation": [], "table": []},
+        )
+        for metric in ("code_edit", "formula_edit", "table_edit", "table_TEDS"):
+            with self.subTest(metric=metric):
+                self.assertFalse(result[metric].success)
+        self.assertTrue(result["text_edit"].success)
+
+    def test_missing_prediction_scores_zero_inside_reference_population(self):
+        result = self.calculator.calculate_all(
+            predicted_content="plain prediction",
+            groundtruth_content=(
+                "use `expected()` and $x$\n\n"
+                "| a |\n|---|\n| b |"
+            ),
+            groundtruth_feature_scope={
+                "code": ["inline"], "equation": ["inline"], "table": ["data"]
+            },
+        )
+        for metric in ("code_edit", "formula_edit", "table_edit", "table_TEDS"):
+            with self.subTest(metric=metric):
+                self.assertTrue(result[metric].success)
+                self.assertEqual(result[metric].score, 0.0)
+
+    def test_extraction_failure_remains_in_reference_populations(self):
+        evaluator = Evaluator(
+            metric_config={"use_llm": False},
+            llm_config={"use_llm": False},
+        )
+        sample = SimpleNamespace(
+            groundtruth_content="use `expected()`",
+            groundtruth_content_list=None,
+            meta={"code": ["inline"], "equation": [], "table": []},
+        )
+        result = evaluator._score_failed_extraction(sample)
+        self.assertTrue(result["text_edit"]["success"])
+        self.assertEqual(result["text_edit"]["score"], 0.0)
+        self.assertTrue(result["code_edit"]["success"])
+        self.assertEqual(result["code_edit"]["score"], 0.0)
+        self.assertFalse(result["formula_edit"]["success"])
+        self.assertEqual(
+            result["code_edit"]["details"]["prediction_source"],
+            "extraction_failure",
+        )
+
+    def test_batch_calculation_preserves_each_reference_scope(self):
+        results = self.calculator.calculate_batch([
+            {
+                "predicted_content": "`invented()`",
+                "groundtruth_content": "plain text",
+                "meta": {"code": [], "equation": [], "table": []},
+            },
+            {
+                "predicted_content": "plain text",
+                "groundtruth_content": "use `expected()`",
+                "meta": {"code": ["inline"], "equation": [], "table": []},
+            },
+        ])
+        self.assertFalse(results[0]["code_edit"].success)
+        self.assertEqual(
+            results[0]["code_edit"].details["availability"],
+            "reference_not_applicable",
+        )
+        self.assertTrue(results[1]["code_edit"].success)
+
+    def test_metric_error_inside_reference_population_scores_zero(self):
+        evaluator = Evaluator.__new__(Evaluator)
+        sample_results = [
+            {"metrics": {"code_edit": {"success": True, "score": 0.8, "details": {}}}},
+            {"metrics": {"code_edit": {
+                "success": False,
+                "score": 0.0,
+                "details": {"availability": "reference_error"},
+            }}},
+            {"metrics": {"code_edit": {
+                "success": False,
+                "score": 0.0,
+                "details": {"availability": "reference_not_applicable"},
+            }}},
+        ]
+        self.assertEqual(evaluator._aggregate_metrics(sample_results)["code_edit"], 0.4)
+
+    def test_public_batch_aggregate_uses_the_reference_population(self):
+        batch = self.calculator.calculate_batch([
+            {
+                "predicted_content": "use `expected()`",
+                "groundtruth_content": "use `expected()`",
+                "meta": {"code": ["inline"], "equation": [], "table": []},
+            },
+            {
+                "predicted_content": "plain",
+                "groundtruth_content": "use `expected()`",
+                "meta": {"code": ["inline"], "equation": [], "table": []},
+            },
+            {
+                "predicted_content": "use `invented()`",
+                "groundtruth_content": "plain",
+                "meta": {"code": [], "equation": [], "table": []},
+            },
+        ])
+        batch[1]["code_edit"].success = False
+        batch[1]["code_edit"].score = 0.0
+        batch[1]["code_edit"].details["availability"] = "reference_error"
+
+        result = self.calculator.aggregate_results(batch)["code_edit"]
+
+        self.assertEqual(result.score, 0.5)
+        self.assertEqual(result.details["num_applicable"], 2)
+        self.assertEqual(result.details["num_failed"], 1)
+        self.assertEqual(result.details["num_not_applicable"], 1)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -88,6 +88,13 @@ Computed on the 545-sample subset with manually calibrated `groundtruth_content`
 
 All scores are in **[0, 1]**; higher is better.
 
+The specialized metrics use a shared reference-defined population. Code scope
+comes from the audited dataset code annotation and requires scorable code in the
+reference; formula and table scope require a scorable reference representation.
+Prediction-only content never adds a row to one extractor's denominator. If a
+reference-scoped feature is missing from a prediction, including an extraction
+failure, that row scores zero instead of disappearing from the aggregate.
+
 ## Leaderboard
 
 ### ROUGE-N F1 on Full Dataset (7,809 samples)
@@ -230,11 +237,18 @@ for name, result in results.items():
 To reproduce the 545-sample fine-grained leaderboard:
 
 ```bash
+python scripts/apply_dataset_corrections.py \
+  data/WebMainBench_545.jsonl data/WebMainBench_545_corrected.jsonl
 export LLM_BASE_URL="https://your-openai-compatible-endpoint/v1"
 export LLM_API_KEY="..."
 export LLM_MODEL="gpt-5-chat-latest"
-python examples/run_545_leaderboard.py data/WebMainBench_545.jsonl
+python examples/run_545_leaderboard.py data/WebMainBench_545_corrected.jsonl
 ```
+
+The correction command binds the complete input and output populations: row
+count, unique ordered IDs, and canonical row content. It corrects reviewed
+reference Markdown and content annotations, and stops on any changed, missing,
+duplicated, or reordered row instead of applying a stale or partial edit.
 
 Complete examples are available at `examples/run_545_leaderboard.py` and `examples/multi_extractor_compare.py`.
 
