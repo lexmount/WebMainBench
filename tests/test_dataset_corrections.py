@@ -160,6 +160,22 @@ class DatasetCorrectionTests(unittest.TestCase):
         self.assertFalse(replacement.lstrip().startswith("```"))
         self.assertEqual(replacement.count("# 南生运营的理念（商用）"), 1)
 
+        collapsed = next(
+            item for item in manifest["corrections"]
+            if item["track_id"] == "8798f93a-240c-46d7-a8d1-a5fb011279fc"
+        )
+        collapsed_replacement = (
+            manifest_path.parent / collapsed["replacement_file"]
+        ).read_text(encoding="utf-8")
+        self.assertEqual(
+            sha256(collapsed_replacement), collapsed["replacement_sha256"]
+        )
+        self.assertEqual(collapsed_replacement.count(" + -"), 91)
+        self.assertIn("All time winning streaks", collapsed_replacement)
+        self.assertIn("Current winning streaks", collapsed_replacement)
+        self.assertNotIn("_WINNER_", collapsed_replacement)
+        self.assertNotRegex(collapsed_replacement, r"\*\*[HA]\*\* \d{4}/")
+
 
 if __name__ == "__main__":
     unittest.main()

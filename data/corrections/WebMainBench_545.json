@@ -8,7 +8,7 @@
   "output_population": {
     "row_count": 545,
     "ordered_track_ids_sha256": "81d372afe7d3161ee93e5bd9e514bf5ff1c5ceabb611d1e70b1aa9176fc1aaba",
-    "rows_sha256": "d546259bf77f4f7851e45d247b0fcb234683aab23927c31e583b835708bb2b15"
+    "rows_sha256": "d8782385f34e73c4efc94e2ff3c2069705f651a291a208b9d2ce9b31a9c38805"
   },
   "corrections": [
     {
@@ -346,6 +346,15 @@
       "original_groundtruth_sha256": "8ec8ac8ae7eea22cd4ee2261ebccf01e40e7a99f770f135c5217bbe3b94e61a2",
       "replacement_file": "d0917f81-3044-4bdb-abb1-6cff6b7db15a.md",
       "replacement_sha256": "79e34b1316aca38603d9e65a7728f6a2f1962daf7e300e485f68f5bd32ee11d6"
+    },
+    {
+      "track_id": "8798f93a-240c-46d7-a8d1-a5fb011279fc",
+      "url": "http://mcubed.net/mlb/nym/tstrkgwa.shtml",
+      "reason": "Remove the 91 game-detail groups hidden by the frozen page startup script while retaining both visible streak summary lists.",
+      "original_groundtruth_sha256": "56250462946add1edd09fdb0717abda4967d7a0f4874c5ec475fe38a8f665b03",
+      "replacement_file": "8798f93a-240c-46d7-a8d1-a5fb011279fc.md",
+      "replacement_sha256": "03c17f0d772e4657f34ad0cf0e212e4466549b9baa6e7be35c0dac4b47bd2524",
+      "html_sha256": "b4272a0a690c4dd00c474254119204134ee654e0a3b865b00c17e03367e05205"
     }
   ]
 }
