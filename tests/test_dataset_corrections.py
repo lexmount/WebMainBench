@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 
 from scripts.dataset_corrections import apply_corrections, correct_jsonl
+from scripts.dataset_corrections import _DECISION_CONTRACTS
 
 
 def sha256(value):
@@ -27,7 +28,8 @@ def fixture(tmp_path):
     }
     corrected = {**row, "groundtruth_content": replacement}
     manifest = {
-        "schema_version": 2,
+        "schema_version": 3,
+        "decision_contracts": _DECISION_CONTRACTS,
         "input_population": population([row]),
         "output_population": population([corrected]),
         "corrections": [
@@ -38,6 +40,8 @@ def fixture(tmp_path):
                 "replacement_file": "replacement.md",
                 "replacement_sha256": sha256(replacement),
                 "html_sha256": sha256("<article>One canonical copy.</article>"),
+                "decision_contract": "main-content-reference",
+                "rationale": "The editor buffer duplicates the selected article body.",
             }
         ],
     }
@@ -96,6 +100,24 @@ class DatasetCorrectionTests(unittest.TestCase):
         corrected = json.loads(output_path.read_text(encoding="utf-8"))
         self.assertEqual(corrected["groundtruth_content"], replacement)
 
+    def test_correction_rejects_method_outcome_as_decision_authority(self):
+        row, _, manifest_path = fixture(self.path)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["corrections"][0]["method_score"] = {"before": 0.1, "after": 0.9}
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "undeclared decision inputs"):
+            apply_corrections([row], manifest_path)
+
+    def test_correction_requires_source_and_contract_evidence(self):
+        row, _, manifest_path = fixture(self.path)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["decision_contracts"]["main-content-reference"][
+            "required_source_evidence"
+        ] = ["original_reference"]
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "decision contracts changed"):
+            apply_corrections([row], manifest_path)
+
     def test_correction_rejects_changes_to_untouched_population(self):
         row, replacement, manifest_path = fixture(self.path)
         untouched = {"track_id": "other", "groundtruth_content": "Other"}
@@ -115,12 +137,15 @@ class DatasetCorrectionTests(unittest.TestCase):
     def test_metadata_correction_is_hash_bound(self):
         meta = {"code": ["interline"], "language": "en"}
         manifest = {
-            "schema_version": 2,
+            "schema_version": 3,
+            "decision_contracts": _DECISION_CONTRACTS,
             "corrections": [{
                 "track_id": "wrong-code-label",
                 "url": "https://example.test/plain",
                 "original_meta_sha256": json_sha256(meta),
                 "replacement_meta": {"code": [], "language": "en"},
+                "decision_contract": "feature-scope-annotation",
+                "rationale": "The frozen source contains no selected code structure.",
             }],
         }
         path = self.path / "meta.json"
@@ -145,7 +170,7 @@ class DatasetCorrectionTests(unittest.TestCase):
         root = Path(__file__).parent.parent
         manifest_path = root / "data/corrections/WebMainBench_545.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        self.assertEqual(manifest["schema_version"], 2)
+        self.assertEqual(manifest["schema_version"], 3)
         self.assertEqual(manifest["input_population"]["row_count"], 545)
         self.assertEqual(manifest["output_population"]["row_count"], 545)
         self.assertGreaterEqual(len(manifest["corrections"]), 1)

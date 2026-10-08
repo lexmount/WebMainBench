@@ -241,6 +241,7 @@ python examples/run_545_leaderboard.py data/WebMainBench_545_corrected.jsonl
 ```
 
 修订命令绑定完整输入和输出的行数、唯一有序 ID 及规范化行内容；任一行被修改、遗漏、重复或重排时都会停止，避免静默套用过期或不完整的修订。
+每条修订还必须声明据以判定的任务契约与冻结来源。方法输出和分数变化可以用于发现异常，但不能作为修改考题或参考答案的依据，也不能替代来源证据。
 
 完整示例见 `examples/run_545_leaderboard.py` 和 `examples/multi_extractor_compare.py`。
 
