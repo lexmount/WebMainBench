@@ -6,6 +6,18 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
 
+_DECISION_CONTRACTS = {
+    "main-content-reference": {
+        "changed_field": "groundtruth_content",
+        "required_source_evidence": ["task_contract", "frozen_html", "original_reference"],
+    },
+    "feature-scope-annotation": {
+        "changed_field": "meta",
+        "required_source_evidence": ["task_contract", "frozen_html", "original_metadata"],
+    },
+}
+
+
 def _sha256(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
@@ -28,14 +40,37 @@ def _validate_population(rows: List[Dict[str, Any]], binding: Dict[str, Any], la
         raise ValueError(f"{label} dataset content changed")
 
 
+def _validate_decision_basis(correction: Dict[str, Any]) -> None:
+    """Require correction authority that does not depend on method outcomes."""
+    common = {"track_id", "url", "html_sha256", "decision_contract", "rationale"}
+    reference = {"original_groundtruth_sha256", "replacement_file", "replacement_sha256"}
+    metadata = {"original_meta_sha256", "replacement_meta"}
+    allowed = common | reference | metadata
+    if set(correction) - allowed:
+        raise ValueError("Dataset correction contains undeclared decision inputs")
+    contract = correction.get("decision_contract")
+    policy = _DECISION_CONTRACTS.get(contract)
+    expected_key = {
+        "groundtruth_content": "replacement_file",
+        "meta": "replacement_meta",
+    }.get(policy and policy["changed_field"])
+    if expected_key is None or expected_key not in correction:
+        raise ValueError("Dataset correction decision_basis does not match its changed field")
+    rationale = correction.get("rationale")
+    if not isinstance(rationale, str) or not rationale.strip():
+        raise ValueError("Dataset correction requires an evidence-based rationale")
+
+
 def apply_corrections(
     rows: Iterable[Dict[str, Any]], manifest_path: Path
 ) -> List[Dict[str, Any]]:
     """Return corrected rows and reject stale or ambiguous correction targets."""
     manifest_path = Path(manifest_path)
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if manifest.get("schema_version") != 2:
+    if manifest.get("schema_version") != 3:
         raise ValueError("Unsupported dataset correction schema")
+    if manifest.get("decision_contracts") != _DECISION_CONTRACTS:
+        raise ValueError("Dataset correction decision contracts changed")
 
     rows = list(rows)
     _validate_population(rows, manifest["input_population"], "Input")
@@ -51,6 +86,7 @@ def apply_corrections(
         track_id = row.get("track_id") or row.get("id")
         correction = corrections.get(track_id)
         if correction is not None:
+            _validate_decision_basis(correction)
             if track_id in applied:
                 raise ValueError(f"Dataset contains duplicate corrected track ID: {track_id}")
             if row.get("url") != correction["url"]:

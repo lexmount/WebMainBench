@@ -249,6 +249,9 @@ The correction command binds the complete input and output populations: row
 count, unique ordered IDs, and canonical row content. It corrects reviewed
 reference Markdown and content annotations, and stops on any changed, missing,
 duplicated, or reordered row instead of applying a stale or partial edit.
+Each correction also declares the task contract and the frozen source authority
+used to decide it. Method outputs and score changes may reveal an anomaly, but
+they are not correction authority and cannot replace source-based evidence.
 
 Complete examples are available at `examples/run_545_leaderboard.py` and `examples/multi_extractor_compare.py`.
 

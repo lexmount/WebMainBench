@@ -1,5 +1,23 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
+  "decision_contracts": {
+    "main-content-reference": {
+      "changed_field": "groundtruth_content",
+      "required_source_evidence": [
+        "task_contract",
+        "frozen_html",
+        "original_reference"
+      ]
+    },
+    "feature-scope-annotation": {
+      "changed_field": "meta",
+      "required_source_evidence": [
+        "task_contract",
+        "frozen_html",
+        "original_metadata"
+      ]
+    }
+  },
   "input_population": {
     "row_count": 545,
     "ordered_track_ids_sha256": "81d372afe7d3161ee93e5bd9e514bf5ff1c5ceabb611d1e70b1aa9176fc1aaba",
@@ -14,16 +32,16 @@
     {
       "track_id": "f080fbec-9ec6-43c6-9bc6-0846c70cbe8d",
       "url": "https://bbs.nanshengbbs.top/detail/171",
-      "reason": "Remove the duplicated hidden Markdown editor buffer from the reference and retain one canonical Markdown copy.",
       "original_groundtruth_sha256": "c23c7c7a57fc06b045929d5b8fd3271805d62df18cb7bd6221a21f6d2cc24765",
       "replacement_file": "f080fbec-9ec6-43c6-9bc6-0846c70cbe8d.md",
       "replacement_sha256": "2e04b21e7a80cb4333d9549620119ff833bed048d03af47461c534216d82e48c",
-      "html_sha256": "5c564eaea5ecb19b368fc843bec1550cc8a3a99099c76e20333a462fe32fb257"
+      "html_sha256": "5c564eaea5ecb19b368fc843bec1550cc8a3a99099c76e20333a462fe32fb257",
+      "decision_contract": "main-content-reference",
+      "rationale": "Remove the duplicated hidden Markdown editor buffer from the reference and retain one canonical Markdown copy."
     },
     {
       "track_id": "25eb26e1-4d2a-493d-8dc9-d84e1fa3aea7",
       "url": "https://tabletennis.ph/forum/international-events/john-russel-misal-started-strong-at-southeast-asian-regional-olympic-qualification/#post-147",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "f0f238593ecdc8b7f427fca553a44f74bdc8e9ac309787c1f1c29f82750d6263",
       "original_meta_sha256": "f0fe69b040b1562c2f0c9503c5094a37803da9686456ff6cf6600404d32c6d06",
       "replacement_meta": {
@@ -33,12 +51,13 @@
         "equation": [],
         "code": [],
         "level": "mid"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "2917ce28-b5ea-4a98-8263-8add311f609a",
       "url": "https://auditcop.es/kabhi-khushi-kabhie-gham-full-movie-download-for-mobile/",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "3c14ce0d79929c4552c888e786ec121a706df660a0a2ba5cadab648135daf8e0",
       "original_meta_sha256": "9ae54b83d31ef46473134e58d28155b58fc706f0a59cd08e05e7f77179908f6c",
       "replacement_meta": {
@@ -48,12 +67,13 @@
         "equation": [],
         "code": [],
         "level": "mid"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "6b9ab18b-eca4-4c1d-983a-3f5e5c2a943e",
       "url": "http://forum.zkoss.org/question/109839/zk-multiplecomposer-using-spring-use-composer-variable-in-zul/",
-      "reason": "Declare the selected multi-line ZUL and Java code blocks present in both frozen HTML and reference.",
       "html_sha256": "df72cb9cedb143f0eaebaa28697b1ab828e6839bb6377ca2b052acbd8404e333",
       "original_meta_sha256": "637f44f39cd784b8157a15b13c14cfe4b212e34f7dfa00cba839b9abb5cb8e54",
       "replacement_meta": {
@@ -65,12 +85,13 @@
           "interline"
         ],
         "level": "simple"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Declare the selected multi-line ZUL and Java code blocks present in both frozen HTML and reference."
     },
     {
       "track_id": "daca21bf-31c4-49c3-92b6-dd1357a26aa8",
       "url": "https://hudsonvalleyone.com/2014/03/31/woodstock-organic-waste-wants-your-compostables/",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "80c1e0991c18a689557cb28a999bd243fd94009e48f6fcb0ceee65776de1c9c5",
       "original_meta_sha256": "3ea9ad07fcd40618e770411dc80e5bb21323512d3ada772c4621c8d0e66596b5",
       "replacement_meta": {
@@ -82,12 +103,13 @@
         ],
         "code": [],
         "level": "hard"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "f4e10bbd-9804-4fac-895b-9b49e3fe46fc",
       "url": "https://aniruddhadeb.com/articles/2020/interesting-electronics-problem/",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "858f5774c2f8d3f4a7848297d3caa442c9a7106017a9f1e25a41ddec5829f43f",
       "original_meta_sha256": "b66b04fe39110d6dd3709ef194da2b80aeadc72bf73f185ed8dc36fe28369e7a",
       "replacement_meta": {
@@ -100,12 +122,13 @@
         ],
         "code": [],
         "level": "mid"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "ed3c4fa0-563e-4a0f-bcb9-da3856a0f9b4",
       "url": "https://www.usjunkcars.com/florida/the_crossings_auto_removal.html",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "f58f7ae82af6974e03bb2f460fc8b11e798ab931ab8c469fac925e1382491955",
       "original_meta_sha256": "aedabf1521f6d3e195433b6e4ed4a6ce6147e09dd7fa9d2a1cae1c5e511c67af",
       "replacement_meta": {
@@ -117,12 +140,13 @@
         "equation": [],
         "code": [],
         "level": "hard"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "69bddcb5-ea29-4f92-9255-e78e027a678f",
       "url": "https://lingvanex.com/language-features-id/",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "86a21d1f8b4e36d94dcbee9e39a69a4f048b411026a306a660511a4812d3f8e2",
       "original_meta_sha256": "ca75e2c270f8779225a302cbb571ddc014d8b3bfd6b1f7f14b470050dee64c0e",
       "replacement_meta": {
@@ -132,12 +156,13 @@
         "equation": [],
         "code": [],
         "level": "mid"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "cd1b69ae-4b3d-441e-b4bf-447c1dbaff40",
       "url": "http://blog.holcombephotography.com/?comments_popup=4928?KeepThis=true&TB_iframe=true&height=400&width=400",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "4285974a98dc6e69ecd24a8c72f88ee207aedfd492f6da8e4bc1401d6d703c9e",
       "original_meta_sha256": "ea8f9dec930122b22e478a8438dceb5488df21b08fe6607f4c6d2a3a6d15907e",
       "replacement_meta": {
@@ -147,12 +172,13 @@
         "equation": [],
         "code": [],
         "level": "simple"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "aad10729-7da6-4276-b860-68db0b7be515",
       "url": "https://repositorio.ifgoiano.edu.br/handle/prefix/850",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "d820dc4a7c3f34183834b9010147f9b802da6d2331052846e82f4e9c3386d0f7",
       "original_meta_sha256": "77585923eb010d5dea5d07786f7c14f247ab3c444a3a325ccc3e466b06ec2a6f",
       "replacement_meta": {
@@ -164,12 +190,13 @@
         "equation": [],
         "code": [],
         "level": "hard"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "ca7a29a8-1a68-47f2-b8f6-2b412633e802",
       "url": "https://iris.unife.it/handle/11392/2374164",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "838601e8eceaa5768fda1759614bedc945b531bb8bf7c4690dedffb1fd3b4336",
       "original_meta_sha256": "ea8f9dec930122b22e478a8438dceb5488df21b08fe6607f4c6d2a3a6d15907e",
       "replacement_meta": {
@@ -179,12 +206,13 @@
         "equation": [],
         "code": [],
         "level": "simple"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "0d03739c-f8f7-49ae-960c-5ed79a7d3d8c",
       "url": "http://link.ccrls.org/resource/Eoylbyso8xA/",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "e6cf138dbe849e31f8a09a76f83c9f2291f4d0992ea90ec776c70f62aaacf3f7",
       "original_meta_sha256": "ca75e2c270f8779225a302cbb571ddc014d8b3bfd6b1f7f14b470050dee64c0e",
       "replacement_meta": {
@@ -194,12 +222,13 @@
         "equation": [],
         "code": [],
         "level": "mid"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "2b40df91-b0a3-4f75-8d4a-0d5e78ab5b73",
       "url": "https://employeebenefits.co.uk/issues/motivation-and-recognition-supplement-2013/motivational-sporting-events-to-follow-in-2014/",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "8d1cbb004d80ca00b255663e87481cc634b2278fc99772b01651c34a1ad2eebd",
       "original_meta_sha256": "ca75e2c270f8779225a302cbb571ddc014d8b3bfd6b1f7f14b470050dee64c0e",
       "replacement_meta": {
@@ -209,12 +238,13 @@
         "equation": [],
         "code": [],
         "level": "mid"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "46dc227e-8f56-4e9b-8710-8c4e0630c8ce",
       "url": "http://www.organicconsumers.org/madcow/unknown4902.cfm",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "d9d0e803d3d76d5e3cb6ac53ad4c3bed2379623d1a031fe5e8ab79e33823ff08",
       "original_meta_sha256": "b7625554845c7d036431456acc9c27b3ed772da3a8510069a2b96b0acad17080",
       "replacement_meta": {
@@ -226,12 +256,13 @@
         "equation": [],
         "code": [],
         "level": "mid"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "37dae375-4ec6-488b-99da-9a15b622f26a",
       "url": "https://www.jamaicaculture.org/team/dr-horace-alexander/",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "e9fccea44f298aeed5651a119d9682d7394c56ab88199f4ce8288bd8cae8f6bd",
       "original_meta_sha256": "ca75e2c270f8779225a302cbb571ddc014d8b3bfd6b1f7f14b470050dee64c0e",
       "replacement_meta": {
@@ -241,12 +272,13 @@
         "equation": [],
         "code": [],
         "level": "mid"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "90e52c1a-9781-4bab-bcfe-62de71874973",
       "url": "https://digital.library.adelaide.edu.au/dspace/handle/2440/74289",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "74b95bf53aefae97f9cf3a61d6203463cca3d00a1a6c2bc3a09e342af5197c7f",
       "original_meta_sha256": "22004339fb2330a37e4c770405be32aba9dc471aeacc00be73e93c7886425a8b",
       "replacement_meta": {
@@ -258,12 +290,13 @@
         "equation": [],
         "code": [],
         "level": "mid"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "3e7ca5eb-da16-491c-885a-aba02de2a2c1",
       "url": "https://svn.haxx.se/dev/archive-2003-07/0950.shtml",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "2ed112addfa46803c6474af5a56426e383d30f336b3c3a725965ba9d52a85869",
       "original_meta_sha256": "d94df0fbf287774431d96d6a8cab967655b5ca0e3e3e7807088e67d94bc55460",
       "replacement_meta": {
@@ -276,12 +309,13 @@
         "equation": [],
         "code": [],
         "level": "hard"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "290cdc32-65d1-42a0-8dd3-69161cda7d04",
       "url": "https://kfyo.com/trump-administration-considers-stimulus-to-help-the-economy/",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "c5045df9420e7c4c89633db76a1b2233338bc0f49db21ce20cf50f4495efb2aa",
       "original_meta_sha256": "920359888b006e61db44fa5f0ba72cb042f9edb9ab1c7e2c8ec43f3c19b27282",
       "replacement_meta": {
@@ -291,12 +325,13 @@
         "equation": [],
         "code": [],
         "level": "hard"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "811694dc-56a5-465a-b52a-12ebc60fd7d2",
       "url": "http://www.economagic.com/em-cgi/data.exe/beagmp/25500x900x065",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "fb6f8dcb1f312a42de155b1a192091d1a0e4201f8e84824049aa9c6800923475",
       "original_meta_sha256": "d94df0fbf287774431d96d6a8cab967655b5ca0e3e3e7807088e67d94bc55460",
       "replacement_meta": {
@@ -309,12 +344,13 @@
         "equation": [],
         "code": [],
         "level": "hard"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "c0f04c80-8c0d-45b9-b6ef-b281978b1b21",
       "url": "http://etd.ncsi.iisc.ernet.in/handle/2005/2641",
-      "reason": "Remove a code-content label when the selected frozen HTML and reference contain no code element.",
       "html_sha256": "74104748d823cffd71068585edccf53e7ef2d9005bedfc795730fe401b232cbc",
       "original_meta_sha256": "43fe670e727b63fc2c2b796402e7da7217c8e0a0b4e084c0496f8a15bc31d6be",
       "replacement_meta": {
@@ -327,25 +363,29 @@
         "equation": [],
         "code": [],
         "level": "mid"
-      }
+      },
+      "decision_contract": "feature-scope-annotation",
+      "rationale": "Remove a code-content label when the selected frozen HTML and reference contain no code element."
     },
     {
       "track_id": "55ba9228-70a1-409f-a4e1-f2acac076b0d",
       "url": "https://en.wikipedia.org/wiki/First_United_Methodist_Church_(Walters,_Oklahoma)",
-      "reason": "Preserve the selected inline code element as inline code in the Markdown reference.",
       "html_sha256": "6971f56b7739d52907b4c2a43141ba93ed6c085af9c3d71fb29c41faa50a100c",
       "original_groundtruth_sha256": "f37042765ddfc65d32d930355d64e136774120a15b941a3562490d627823dd4c",
       "replacement_file": "55ba9228-70a1-409f-a4e1-f2acac076b0d.md",
-      "replacement_sha256": "70af80fd7eeabd1155d3dcb5b942d6e91b6658d8163419532db0c73c1c5b4ebc"
+      "replacement_sha256": "70af80fd7eeabd1155d3dcb5b942d6e91b6658d8163419532db0c73c1c5b4ebc",
+      "decision_contract": "main-content-reference",
+      "rationale": "Preserve the selected inline code element as inline code in the Markdown reference."
     },
     {
       "track_id": "d0917f81-3044-4bdb-abb1-6cff6b7db15a",
       "url": "https://tandis.odihr.pl/handle/20.500.12389/19835",
-      "reason": "Preserve the selected inline code element as inline code in the Markdown reference.",
       "html_sha256": "d0b1e93aeabdcf063ceddc4b6b66500d4665ce82176b99ee709a927aa90ad8da",
       "original_groundtruth_sha256": "8ec8ac8ae7eea22cd4ee2261ebccf01e40e7a99f770f135c5217bbe3b94e61a2",
       "replacement_file": "d0917f81-3044-4bdb-abb1-6cff6b7db15a.md",
-      "replacement_sha256": "79e34b1316aca38603d9e65a7728f6a2f1962daf7e300e485f68f5bd32ee11d6"
+      "replacement_sha256": "79e34b1316aca38603d9e65a7728f6a2f1962daf7e300e485f68f5bd32ee11d6",
+      "decision_contract": "main-content-reference",
+      "rationale": "Preserve the selected inline code element as inline code in the Markdown reference."
     }
   ]
 }
